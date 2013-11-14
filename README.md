@@ -11,3 +11,11 @@ The script can be run from a daily cron job to supply your technicians with an
 up to date Desinfect version to boot on client computers.
 
 Please report bugs/feature requests via github.
+
+Sample pxelinux.cfg entry
+=========================
+
+	LABEL desinfect
+    	menu label Desinfect
+    	kernel desinfect/casper/vmlinuz
+    	append initrd=desinfect/casper/initrd.lz boot=casper netboot=nfs nfsroot=134.99.24.249:/data/boot/desinfect/ splash quiet -- debian-installer/language=de console-setup/layoutcode?=de
