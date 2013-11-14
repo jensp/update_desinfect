@@ -12,6 +12,12 @@ up to date virus definitions to boot on client computers.
 
 Please report bugs/feature requests via github.
 
+Purchase Desinfec't
+===================
+
+To get a copy of Desinfec't you'll have to purchase ct't 10/2013 you can get it
+from Heise's online shop: http://shop.heise.de/katalog/ct-10-2013
+
 Sample pxelinux.cfg entry
 =========================
 
