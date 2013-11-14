@@ -1,0 +1,83 @@
+#!/bin/bash
+# Released under The MIT License
+# 2013 Jens Pranaitis <jens@chaox.net>
+BOOT=/data/boot
+DESINFECT=${BOOT}/desinfect
+
+unpack_sqfs() {
+    cd $DESINFECT
+    if [ -d squashfs-root ]
+    then
+        echo "Detected old squashfs-root. Aborting."
+        exit 3
+    fi
+    echo "Unpacking Squashfs in $(pwd)/squashfs-root"
+    unsquashfs casper/filesystem.squashfs || exit 1
+    cd squashfs-root
+}
+
+prepare_chroot() {
+    echo "Preparing chroot in $(pwd)"
+    mount -t proc none proc/
+    mount -o bind /dev dev/
+    mount -o bind /sys sys
+    cp /proc/mounts etc/mtab
+    cp /etc/resolv.conf etc/resolv.conf
+}
+
+update_av() {
+    echo "Updating AV"
+# this follows the update script shipped with desinfect
+    chroot . /bin/bash <<EOF
+cd /opt/desinfect
+today=` date "+%Y%m%d" `
+mkdir -p /var/run/desinfect
+echo 666 > /var/run/desinfect/update_avira_returncode
+/AntiVirUpdate/avupdate
+echo "Avira updated"
+today=` date "+%Y%m%d" `
+mkdir -p /var/run/desinfect
+echo 666 > /var/run/desinfect/update_bitdefender_returncode
+bdscan --update
+echo "Bitdefender updated"
+today=` date "+%Y%m%d" `
+mkdir -p /var/run/desinfect
+echo 666 > /var/run/desinfect/update_clamav_returncode
+chown -R clamav /var/log/clamav
+rm /var/log/clamav/freshclam.log
+freshclam --no-warnings --quiet
+echo "Clam updated"
+PATH=/usr/lib/kl:$PATH
+LD_LIBRARY_PATH=/usr/lib/kl:$LD_LIBRARY_PATH
+KL_PLUGINS_PATH=/usr/lib/kl
+export PATH LD_LIBRARY_PATH KL_PLUGINS_PATH
+today=` date "+%Y%m%d" `
+mkdir -p /var/run/desinfect
+echo 666 > /var/run/desinfect/update_kaspersky_returncode
+/usr/lib/kl/kav update
+echo "Kaspersky updated"
+exit
+EOF
+}
+
+cleanup_chroot() {
+    echo "Cleaning up chroot env"
+    umount proc
+    umount dev
+    umount sys
+}
+
+unpack_sqfs
+
+prepare_chroot
+
+update_av
+
+cleanup_chroot
+
+mv ${DESINFECT}/casper/filesystem.squashfs ${DESINFECT}/casper/filesystem.squashfs.old
+# we can probably optimize squashfs compression...
+mksquashfs . ${DESINFECT}/casper/filesystem.squashfs -no-progress || exit 2
+chmod 644 ${DESINFECT}/casper/filesystem.squashfs
+cd ..
+rm -r squashfs-root
