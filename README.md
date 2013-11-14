@@ -18,4 +18,4 @@ Sample pxelinux.cfg entry
 	LABEL desinfect
     	menu label Desinfect
     	kernel desinfect/casper/vmlinuz
-    	append initrd=desinfect/casper/initrd.lz boot=casper netboot=nfs nfsroot=134.99.24.249:/data/boot/desinfect/ splash quiet -- debian-installer/language=de console-setup/layoutcode?=de
+    	append initrd=desinfect/casper/initrd.lz boot=casper netboot=nfs nfsroot=$yourbootserver:/data/boot/desinfect/ splash quiet -- debian-installer/language=de console-setup/layoutcode?=de
