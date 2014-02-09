@@ -1,6 +1,6 @@
 #!/bin/bash
 # Released under The MIT License
-# 2013 Jens Pranaitis <jens@chaox.net>
+# 2014 Jens Pranaitis <jens@chaox.net>
 BOOT=/data/boot
 DESINFECT=${BOOT}/desinfect
 
@@ -76,8 +76,11 @@ update_av
 cleanup_chroot
 
 mv ${DESINFECT}/casper/filesystem.squashfs ${DESINFECT}/casper/filesystem.squashfs.old
-# we can probably optimize squashfs compression...
-mksquashfs . ${DESINFECT}/casper/filesystem.squashfs -no-progress || exit 2
+# best parameters I could find while still providing adequate read performance
+# maybe the blocksize could be tweaked further...
+# TODO: mksquashfs provides a sort parameter, I should boot desinfect with profiling
+# to create a sort list sometime...
+mksquashfs . ${DESINFECT}/casper/filesystem.squashfs -no-progress -comp xz -b 262144 -Xbcj x86 || exit 2
 chmod 644 ${DESINFECT}/casper/filesystem.squashfs
 cd ..
 rm -r squashfs-root
